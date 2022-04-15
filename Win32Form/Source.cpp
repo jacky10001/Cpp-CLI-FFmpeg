@@ -1,6 +1,5 @@
 
 #include "Source.h"
-#include <vector>
 
 int set_video_status = 0;
 
@@ -94,26 +93,33 @@ AVFrame* RequestFrame(DecoderParam& param) {
 		}
 		else {
 			set_video_status = 0;
+			return nullptr;
 		}
 
 		av_packet_unref(packet);
-		return nullptr;
 	}
 
 	return nullptr;
 }
 
-std::vector<Color_RGB> GetRGBPixels(AVFrame* frame) {
+
+AVFrame* GetRGBPixels(AVFrame* frame) {
 	static SwsContext* swsctx = nullptr;
 	swsctx = sws_getCachedContext(
 		swsctx,
-		frame->width, frame->height, (AVPixelFormat)frame->format,
-		frame->width, frame->height, AVPixelFormat::AV_PIX_FMT_BGR24, NULL, NULL, NULL, NULL);
+		frame->width, frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
+		frame->width, frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL);
 
-	std::vector<Color_RGB> buffer(frame->width * frame->height);
-	uint8_t* data[] = { (uint8_t*)&buffer[0] };
-	int linesize[] = { frame->width * 3 };
-	sws_scale(swsctx, frame->data, frame->linesize, 0, frame->height, data, linesize);
+	int bufSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24, frame->width, frame->height, 1);
+	uint8_t* buf = (uint8_t*)av_malloc(bufSize);
+	AVFrame* RGB24Frame = av_frame_alloc();
+	av_image_fill_arrays(
+		RGB24Frame->data, RGB24Frame->linesize, buf,
+		AV_PIX_FMT_RGB24, frame->width, frame->height,
+		1
+	);
 
-	return buffer;
+	sws_scale(swsctx, frame->data, frame->linesize, 0, frame->height, RGB24Frame->data, RGB24Frame->linesize);
+
+	return RGB24Frame;
 }

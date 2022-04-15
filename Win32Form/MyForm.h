@@ -43,6 +43,12 @@ namespace Win32Form {
 	private: System::Windows::Forms::Panel^ panel1;
 	private: System::Windows::Forms::Timer^ timer1;
 	private: System::Windows::Forms::Button^ button_play;
+	private: System::Windows::Forms::GroupBox^ groupBox_video_file;
+	private: System::Windows::Forms::RadioButton^ radioButton_file_2;
+
+
+	private: System::Windows::Forms::RadioButton^ radioButton_file_1;
+
 	private: System::ComponentModel::IContainer^ components;
 	protected:
 
@@ -62,10 +68,14 @@ namespace Win32Form {
 			this->components = (gcnew System::ComponentModel::Container());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->panel1 = (gcnew System::Windows::Forms::Panel());
+			this->groupBox_video_file = (gcnew System::Windows::Forms::GroupBox());
+			this->radioButton_file_2 = (gcnew System::Windows::Forms::RadioButton());
+			this->radioButton_file_1 = (gcnew System::Windows::Forms::RadioButton());
 			this->button_play = (gcnew System::Windows::Forms::Button());
 			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->panel1->SuspendLayout();
+			this->groupBox_video_file->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// pictureBox1
@@ -79,19 +89,53 @@ namespace Win32Form {
 			// 
 			// panel1
 			// 
-			this->panel1->BackColor = System::Drawing::SystemColors::ButtonShadow;
+			this->panel1->BackColor = System::Drawing::SystemColors::Control;
+			this->panel1->Controls->Add(this->groupBox_video_file);
 			this->panel1->Controls->Add(this->button_play);
 			this->panel1->Dock = System::Windows::Forms::DockStyle::Top;
 			this->panel1->Location = System::Drawing::Point(0, 0);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(240, 70);
+			this->panel1->Size = System::Drawing::Size(380, 70);
 			this->panel1->TabIndex = 1;
+			// 
+			// groupBox_video_file
+			// 
+			this->groupBox_video_file->Controls->Add(this->radioButton_file_2);
+			this->groupBox_video_file->Controls->Add(this->radioButton_file_1);
+			this->groupBox_video_file->Location = System::Drawing::Point(122, 3);
+			this->groupBox_video_file->Name = L"groupBox_video_file";
+			this->groupBox_video_file->Size = System::Drawing::Size(175, 61);
+			this->groupBox_video_file->TabIndex = 1;
+			this->groupBox_video_file->TabStop = false;
+			this->groupBox_video_file->Text = L"Video File";
+			// 
+			// radioButton_file_2
+			// 
+			this->radioButton_file_2->AutoSize = true;
+			this->radioButton_file_2->Checked = true;
+			this->radioButton_file_2->Location = System::Drawing::Point(7, 38);
+			this->radioButton_file_2->Name = L"radioButton_file_2";
+			this->radioButton_file_2->Size = System::Drawing::Size(119, 16);
+			this->radioButton_file_2->TabIndex = 1;
+			this->radioButton_file_2->TabStop = true;
+			this->radioButton_file_2->Text = L"test_video.mjpeg.avi";
+			this->radioButton_file_2->UseVisualStyleBackColor = true;
+			// 
+			// radioButton_file_1
+			// 
+			this->radioButton_file_1->AutoSize = true;
+			this->radioButton_file_1->Location = System::Drawing::Point(7, 16);
+			this->radioButton_file_1->Name = L"radioButton_file_1";
+			this->radioButton_file_1->Size = System::Drawing::Size(121, 16);
+			this->radioButton_file_1->TabIndex = 0;
+			this->radioButton_file_1->Text = L"test_video.h264.mp4";
+			this->radioButton_file_1->UseVisualStyleBackColor = true;
 			// 
 			// button_play
 			// 
-			this->button_play->Location = System::Drawing::Point(12, 24);
+			this->button_play->Location = System::Drawing::Point(12, 12);
 			this->button_play->Name = L"button_play";
-			this->button_play->Size = System::Drawing::Size(75, 23);
+			this->button_play->Size = System::Drawing::Size(87, 52);
 			this->button_play->TabIndex = 0;
 			this->button_play->Text = L"Play";
 			this->button_play->UseVisualStyleBackColor = true;
@@ -107,13 +151,15 @@ namespace Win32Form {
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::Color::Black;
-			this->ClientSize = System::Drawing::Size(240, 310);
+			this->ClientSize = System::Drawing::Size(380, 310);
 			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->pictureBox1);
 			this->Name = L"MyForm";
 			this->Text = L"MyForm";
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
 			this->panel1->ResumeLayout(false);
+			this->groupBox_video_file->ResumeLayout(false);
+			this->groupBox_video_file->PerformLayout();
 			this->ResumeLayout(false);
 
 		}
@@ -123,6 +169,7 @@ namespace Win32Form {
 		Graphics^ vo_gra1;
 		Pen^ vo_pen1;
 		SolidBrush^ vo_brush;
+		int encode_mode = 0;  // 0:h264(mp4)  1:mjpeg
 
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 
@@ -130,11 +177,10 @@ namespace Win32Form {
 		AVFrame* frame = RequestFrame(decoderParam);
 
 		if (frame != nullptr) {
-			std::vector<Color_RGB> pixels = GetRGBPixels(frame);
-
 			int width = frame->width;
 			int height = frame->height;
 
+			//// Create `pictureBox` image
 			if (this->pictureBox1->Image == nullptr)
 			{
 				this->pictureBox1->Width = width;
@@ -145,45 +191,40 @@ namespace Win32Form {
 				this->pictureBox1->Image = vo_bmp1;
 			}
 
-			// Lock the bitmap's bits.
+			//// Get frame pixel data
+			frame = GetRGBPixels(frame);
+
+			//// Lock the bitmap's bits.
 			System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, vo_bmp1->Width, vo_bmp1->Height);
 			System::Drawing::Imaging::BitmapData^ bmpData = vo_bmp1->LockBits(rect, System::Drawing::Imaging::ImageLockMode::ReadWrite, vo_bmp1->PixelFormat);
 
-			// Get the address of the first line.
+			//// Get the address of the first line.
 			IntPtr ptr = bmpData->Scan0;
 
-			// Declare an array to hold the bytes of the bitmap.
+			//// Declare an array to hold the bytes of the bitmap.
 			int bytes = bmpData->Stride * vo_bmp1->Height;
 			array<byte>^ destination = gcnew array<byte>(bytes);
 			System::Runtime::InteropServices::Marshal::Copy(ptr, destination, 0, bytes);
 			int nOffset = bmpData->Stride - bmpData->Width * 4;  //通道位移，正常為BGRA。確保後面loc獲得正確像素位置
 			int pb = 0; int pg = 0; int pr = 0; int loc = 0; int off = 0;
-			unsigned int ut1;
-			for (int j = 0; j < 240; j++) {
-				for (int i = 0; i < 240; i++) {
+			for (int j = 0; j < height; j++) {
+				for (int i = 0; i < width; i++) {
+					loc = i * 3 + j * frame->linesize[0];
+					pr = frame->data[0][loc];
+					pg = frame->data[0][loc + 1];
+					pb = frame->data[0][loc + 2];
+
 					loc = (i + j * width) * 4 + off;
-
-					//ut1 = frame->data[0][i + j * width];
-					//pr = ut1;
-					//pg = ut1;
-					//pb = ut1;
-
-					pr = pixels[i + j * width].r;
-					pg = pixels[i + j * width].g;
-					pb = pixels[i + j * width].b;
-
-					destination[loc + 0] = pr;
+					destination[loc + 0] = pb;
 					destination[loc + 1] = pg;
-					destination[loc + 2] = pb;
-					//if (pr == 0 && pg == 0 && pb == 0) destination[loc + 3] = 0x0;
-					if (pr == 0xff && pg == 0xff && pb == 0xff) destination[loc + 3] = 0x0;
-					else destination[loc + 3] = 0xff;
+					destination[loc + 2] = pr;
+					destination[loc + 3] = 0xff;
 				}
 				off += nOffset;
 			}
 
+			//// Unlock the bits.
 			System::Runtime::InteropServices::Marshal::Copy(destination, 0, ptr, bytes);
-			// Unlock the bits.
 			vo_bmp1->UnlockBits(bmpData);
 			this->pictureBox1->Image = vo_bmp1;
 			this->pictureBox1->Refresh();
@@ -193,16 +234,22 @@ namespace Win32Form {
 		}
 
 		if (set_video_status == 0) {
-			vo_bmp1 = gcnew Bitmap(this->pictureBox1->Width, this->pictureBox1->Height);
-			vo_gra1 = Graphics::FromImage(vo_bmp1);
-			vo_gra1->Clear(Color::Black);
-			this->pictureBox1->Image = vo_bmp1;
+			//vo_bmp1 = gcnew Bitmap(this->pictureBox1->Width, this->pictureBox1->Height);
+			//vo_gra1 = Graphics::FromImage(vo_bmp1);
+			//vo_gra1->Clear(Color::Black);
+			//this->pictureBox1->Image = vo_bmp1;
 		}
 	}
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (set_video_status == 0) {
-			InitDecoder("..\\test_video.mp4", decoderParam);
-			//InitDecoder("..\\test_video2.mjpeg", decoderParam);
+			if (this->radioButton_file_1->Checked) {
+				encode_mode = 0;
+				InitDecoder("..\\test_video.h264.mp4", decoderParam);
+			}
+			if (this->radioButton_file_2->Checked) {
+				encode_mode = 1;
+				InitDecoder("..\\test_video.mjpeg.avi", decoderParam);
+			}
 			auto& width = decoderParam.width;
 			auto& height = decoderParam.height;
 			auto& fmtCtx = decoderParam.fmtCtx;

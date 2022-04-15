@@ -14,15 +14,6 @@ extern "C" {
 #pragma comment(lib, "swscale.lib")
 }
 
-#include <vector>
-
-struct Color_RGB
-{
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-};
-
 struct DecoderParam
 {
 	AVFormatContext* fmtCtx;
@@ -32,10 +23,9 @@ struct DecoderParam
 	int videoStreamIndex;
 };
 
+extern int set_video_status;
+
 AVFrame* getFirstFrame(const char* filePath);
 void InitDecoder(const char* filePath, DecoderParam& param);
 AVFrame* RequestFrame(DecoderParam& param);
-
-std::vector<Color_RGB> GetRGBPixels(AVFrame* frame);
-
-extern int set_video_status;
+AVFrame* GetRGBPixels(AVFrame* frame);
