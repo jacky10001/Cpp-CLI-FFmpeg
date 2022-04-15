@@ -174,11 +174,11 @@ namespace Win32Form {
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 
 		//AVFrame* firstframe = getFirstFrame("..\\test_video.mp4");
-		AVFrame* frame = RequestFrame(decoderParam);
+		AVFrame* frameOld = RequestFrame(decoderParam);
 
-		if (frame != nullptr) {
-			int width = frame->width;
-			int height = frame->height;
+		if (frameOld != nullptr) {
+			int width = frameOld->width;
+			int height = frameOld->height;
 
 			//// Create `pictureBox` image
 			if (this->pictureBox1->Image == nullptr)
@@ -194,7 +194,7 @@ namespace Win32Form {
 			}
 
 			//// Get frame pixel data
-			frame = GetRGBPixels(frame);
+			AVFrame* frame = GetRGBPixels(frameOld);  //TODO: °O¾ÐÅé·|¿±µÈ=.=
 
 			//// Lock the bitmap's bits.
 			System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, vo_bmp1->Width, vo_bmp1->Height);
@@ -234,13 +234,7 @@ namespace Win32Form {
 
 			av_frame_free(&frame);
 		}
-
-		if (set_video_status == 0) {
-			//vo_bmp1 = gcnew Bitmap(this->pictureBox1->Width, this->pictureBox1->Height);
-			//vo_gra1 = Graphics::FromImage(vo_bmp1);
-			//vo_gra1->Clear(Color::Black);
-			//this->pictureBox1->Image = vo_bmp1;
-		}
+		av_frame_free(&frameOld);
 	}
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (set_video_status == 0) {
@@ -254,8 +248,8 @@ namespace Win32Form {
 			}
 			auto& width = decoderParam.width;
 			auto& height = decoderParam.height;
-			auto& fmtCtx = decoderParam.fmtCtx;
-			auto& vcodecCtx = decoderParam.vcodecCtx;
+			//auto& fmtCtx = decoderParam.fmtCtx;
+			//auto& vcodecCtx = decoderParam.vcodecCtx;
 
 			printf("Width:  %d\n", width);
 			printf("Height: %d\n", height);

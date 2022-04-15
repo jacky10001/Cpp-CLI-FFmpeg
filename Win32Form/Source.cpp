@@ -120,6 +120,5 @@ AVFrame* GetRGBPixels(AVFrame* frame) {
 	);
 
 	sws_scale(swsctx, frame->data, frame->linesize, 0, frame->height, RGB24Frame->data, RGB24Frame->linesize);
-
 	return RGB24Frame;
 }
