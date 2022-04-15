@@ -68,13 +68,14 @@ void InitDecoder(const char* filePath, DecoderParam& param) {
 	param.height = vcodecCtx->height;
 }
 
+AVPacket* packet;
 AVFrame* RequestFrame(DecoderParam& param) {
 	auto& fmtCtx = param.fmtCtx;
 	auto& vcodecCtx = param.vcodecCtx;
 	auto& videoStreamIndex = param.videoStreamIndex;
 
 	while (1) {
-		AVPacket* packet = av_packet_alloc();
+		packet = av_packet_alloc();
 		int ret = av_read_frame(fmtCtx, packet);
 		if (ret == 0 && packet->stream_index == videoStreamIndex) {
 			ret = avcodec_send_packet(vcodecCtx, packet);
@@ -93,32 +94,33 @@ AVFrame* RequestFrame(DecoderParam& param) {
 		}
 		else {
 			set_video_status = 0;
-			return nullptr;
+			avcodec_close(vcodecCtx);  // Release decoder
 		}
 
 		av_packet_unref(packet);
+		return nullptr;
 	}
-
-	return nullptr;
 }
 
-
-AVFrame* GetRGBPixels(AVFrame* frame) {
-	static SwsContext* swsctx = nullptr;
+void GetRGBPixels(AVFrame* src_frame, AVFrame* dst_frame, uint8_t* buf) {
+	SwsContext* swsctx = nullptr;
 	swsctx = sws_getCachedContext(
 		swsctx,
-		frame->width, frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
-		frame->width, frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL);
+		src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
+		src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
+	);
 
-	int bufSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24, frame->width, frame->height, 1);
-	uint8_t* buf = (uint8_t*)av_malloc(bufSize);
-	AVFrame* RGB24Frame = av_frame_alloc();
 	av_image_fill_arrays(
-		RGB24Frame->data, RGB24Frame->linesize, buf,
-		AV_PIX_FMT_RGB24, frame->width, frame->height,
+		dst_frame->data, dst_frame->linesize, buf,
+		AV_PIX_FMT_RGB24, src_frame->width, src_frame->height,
 		1
 	);
 
-	sws_scale(swsctx, frame->data, frame->linesize, 0, frame->height, RGB24Frame->data, RGB24Frame->linesize);
-	return RGB24Frame;
+	sws_scale(
+		swsctx,
+		src_frame->data, src_frame->linesize, 0, src_frame->height,
+		dst_frame->data, dst_frame->linesize
+	);
+
+	sws_freeContext(swsctx);
 }

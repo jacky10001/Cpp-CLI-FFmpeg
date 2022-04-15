@@ -28,4 +28,4 @@ extern int set_video_status;
 AVFrame* getFirstFrame(const char* filePath);
 void InitDecoder(const char* filePath, DecoderParam& param);
 AVFrame* RequestFrame(DecoderParam& param);
-AVFrame* GetRGBPixels(AVFrame* frame);
+void GetRGBPixels(AVFrame* src_frame, AVFrame* dst_frame, uint8_t* buf);

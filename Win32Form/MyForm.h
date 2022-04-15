@@ -112,22 +112,22 @@ namespace Win32Form {
 			// radioButton_file_2
 			// 
 			this->radioButton_file_2->AutoSize = true;
-			this->radioButton_file_2->Checked = true;
 			this->radioButton_file_2->Location = System::Drawing::Point(7, 38);
 			this->radioButton_file_2->Name = L"radioButton_file_2";
 			this->radioButton_file_2->Size = System::Drawing::Size(119, 16);
 			this->radioButton_file_2->TabIndex = 1;
-			this->radioButton_file_2->TabStop = true;
 			this->radioButton_file_2->Text = L"test_video.mjpeg.avi";
 			this->radioButton_file_2->UseVisualStyleBackColor = true;
 			// 
 			// radioButton_file_1
 			// 
 			this->radioButton_file_1->AutoSize = true;
+			this->radioButton_file_1->Checked = true;
 			this->radioButton_file_1->Location = System::Drawing::Point(7, 16);
 			this->radioButton_file_1->Name = L"radioButton_file_1";
 			this->radioButton_file_1->Size = System::Drawing::Size(121, 16);
 			this->radioButton_file_1->TabIndex = 0;
+			this->radioButton_file_1->TabStop = true;
 			this->radioButton_file_1->Text = L"test_video.h264.mp4";
 			this->radioButton_file_1->UseVisualStyleBackColor = true;
 			// 
@@ -172,13 +172,16 @@ namespace Win32Form {
 		int encode_mode = 0;  // 0:h264(mp4)  1:mjpeg
 
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
+		extern AVPacket* packet;
 
-		//AVFrame* firstframe = getFirstFrame("..\\test_video.mp4");
-		AVFrame* frameOld = RequestFrame(decoderParam);
+		int width, height, bufSize;
+		uint8_t* buf; AVFrame* frameOld; AVFrame* frameNew;
+
+		frameOld = RequestFrame(decoderParam);
 
 		if (frameOld != nullptr) {
-			int width = frameOld->width;
-			int height = frameOld->height;
+			width = frameOld->width;
+			height = frameOld->height;
 
 			//// Create `pictureBox` image
 			if (this->pictureBox1->Image == nullptr)
@@ -194,7 +197,10 @@ namespace Win32Form {
 			}
 
 			//// Get frame pixel data
-			AVFrame* frame = GetRGBPixels(frameOld);  //TODO: °O¾ÐÅé·|¿±µÈ=.=
+			bufSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24, width, height, 1 );
+			buf = (uint8_t*)av_malloc(bufSize);
+			frameNew = av_frame_alloc();
+			GetRGBPixels(frameOld, frameNew, buf);
 
 			//// Lock the bitmap's bits.
 			System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, vo_bmp1->Width, vo_bmp1->Height);
@@ -211,10 +217,10 @@ namespace Win32Form {
 			int pb = 0; int pg = 0; int pr = 0; int loc = 0; int off = 0;
 			for (int j = 0; j < height; j++) {
 				for (int i = 0; i < width; i++) {
-					loc = i * 3 + j * frame->linesize[0];
-					pr = frame->data[0][loc];
-					pg = frame->data[0][loc + 1];
-					pb = frame->data[0][loc + 2];
+					loc = i * 3 + j * frameNew->linesize[0];
+					pr = frameNew->data[0][loc];
+					pg = frameNew->data[0][loc + 1];
+					pb = frameNew->data[0][loc + 2];
 
 					loc = (i + j * width) * 4 + off;
 					destination[loc + 0] = pb;
@@ -232,9 +238,12 @@ namespace Win32Form {
 			this->pictureBox1->Refresh();
 			destination->Clear;
 
-			av_frame_free(&frame);
+			//// Release memory.
+			av_frame_free(&frameNew);
+			av_free(buf);
 		}
 		av_frame_free(&frameOld);
+		av_packet_free(&packet);
 	}
 	private: System::Void button_play_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (set_video_status == 0) {
