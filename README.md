@@ -8,7 +8,8 @@
 
 [https://test-videos.co.uk/bigbuckbunny/mp4-h264](https://test-videos.co.uk/bigbuckbunny/mp4-h264)
 
-[https://segmentfault.com/a/1190000023263016](https://segmentfault.com/a/1190000023263016)
+[https://segmentfault.com/a/1190000023263016](https://segmentfault.com/a/1190000023263016)  
+[https://superuser.com/questions/1273920/deprecated-pixel-format-used-make-sure-you-did-set-range-correctly](https://superuser.com/questions/1273920/deprecated-pixel-format-used-make-sure-you-did-set-range-correctly)
 
 ## FFmpeg command
 
