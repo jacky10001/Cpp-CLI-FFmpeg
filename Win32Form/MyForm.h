@@ -183,6 +183,8 @@ namespace Win32Form {
 			//// Create `pictureBox` image
 			if (this->pictureBox1->Image == nullptr)
 			{
+				this->Width = this->Width + (width - this->panel1->Width);
+				this->Height = this->Height + (height - this->pictureBox1->Height);
 				this->pictureBox1->Width = width;
 				this->pictureBox1->Height = height;
 				vo_bmp1 = gcnew Bitmap(width, height);
