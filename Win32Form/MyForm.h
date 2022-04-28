@@ -257,9 +257,24 @@ namespace Win32Form {
 			}
 			auto& width = decoderParam.width;
 			auto& height = decoderParam.height;
-			//auto& fmtCtx = decoderParam.fmtCtx;
-			//auto& vcodecCtx = decoderParam.vcodecCtx;
+			auto& fmtCtx = decoderParam.fmtCtx;
+			auto& codec_id = decoderParam.vcodecCtx->codec_id;
 
+			printf("avcodec_version:   %d\n", avcodec_version());
+			printf("avformat_version:  %d\n", avformat_version());
+			printf("avutil_version:    %d\n", avcodec_version());
+			switch (codec_id)
+			{
+			case 7:
+				printf("codec: motion-jpeg\n");
+				break;
+			case 27:
+				printf("codec: h.264\n");
+				break;
+			default:
+				printf("codec: not support\n");
+				return;
+			}
 			printf("Width:  %d\n", width);
 			printf("Height: %d\n", height);
 			printf("\n");
