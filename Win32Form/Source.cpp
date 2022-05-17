@@ -66,6 +66,31 @@ void InitDecoder(const char* filePath, DecoderParam& param) {
 	param.vcodecCtx = vcodecCtx;
 	param.width = vcodecCtx->width;
 	param.height = vcodecCtx->height;
+
+	auto& codec_id = vcodecCtx->codec_id;
+
+	printf("avcodec_version:   %d\n", avcodec_version());
+	printf("avformat_version:  %d\n", avformat_version());
+	printf("avutil_version:    %d\n", avcodec_version());
+	printf("codec_id:          %d\n", codec_id);
+	switch (codec_id)
+	{
+	case 7:
+		printf("codec: motion-jpeg\n");
+		break;
+	case 12:
+		printf("codec: mpeg4\n");
+		break;
+	case 27:
+		printf("codec: h.264\n");
+		break;
+	default:
+		printf("codec: null\n");
+		return;
+	}
+	printf("Width:  %d\n", param.width);
+	printf("Height: %d\n", param.height);
+	printf("\n");
 }
 
 AVPacket* packet;
@@ -102,13 +127,35 @@ AVFrame* RequestFrame(DecoderParam& param) {
 	}
 }
 
-void GetRGBPixels(AVFrame* src_frame, AVFrame* dst_frame, uint8_t* buf) {
+void GetRGBPixels(AVFrame* src_frame, AVFrame* dst_frame, uint8_t* buf, DecoderParam& param) {
 	SwsContext* swsctx = nullptr;
-	swsctx = sws_getCachedContext(
-		swsctx,
-		src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
-		src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
-	);
+
+	auto& codec_id = param.vcodecCtx->codec_id;
+	switch (codec_id)
+	{
+	case 7:
+		//printf("codec: motion-jpeg\n");
+		swsctx = sws_getCachedContext(
+			swsctx,
+			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUVJ420P,
+			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
+		);
+		break;
+	case 12:
+		//printf("codec: mpeg4\n");
+		break;
+	case 27:
+		swsctx = sws_getCachedContext(
+			swsctx,
+			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
+			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
+		);
+		//printf("codec: h.264\n");
+		break;
+	default:
+		//printf("codec: null\n");
+		return;
+	}
 
 	av_image_fill_arrays(
 		dst_frame->data, dst_frame->linesize, buf,

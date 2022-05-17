@@ -95,7 +95,7 @@ namespace Win32Form {
 			this->panel1->Dock = System::Windows::Forms::DockStyle::Top;
 			this->panel1->Location = System::Drawing::Point(0, 0);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(380, 70);
+			this->panel1->Size = System::Drawing::Size(242, 70);
 			this->panel1->TabIndex = 1;
 			// 
 			// groupBox_video_file
@@ -104,7 +104,7 @@ namespace Win32Form {
 			this->groupBox_video_file->Controls->Add(this->radioButton_file_1);
 			this->groupBox_video_file->Location = System::Drawing::Point(122, 3);
 			this->groupBox_video_file->Name = L"groupBox_video_file";
-			this->groupBox_video_file->Size = System::Drawing::Size(175, 61);
+			this->groupBox_video_file->Size = System::Drawing::Size(102, 61);
 			this->groupBox_video_file->TabIndex = 1;
 			this->groupBox_video_file->TabStop = false;
 			this->groupBox_video_file->Text = L"Video File";
@@ -112,23 +112,23 @@ namespace Win32Form {
 			// radioButton_file_2
 			// 
 			this->radioButton_file_2->AutoSize = true;
+			this->radioButton_file_2->Checked = true;
 			this->radioButton_file_2->Location = System::Drawing::Point(7, 38);
 			this->radioButton_file_2->Name = L"radioButton_file_2";
-			this->radioButton_file_2->Size = System::Drawing::Size(119, 16);
+			this->radioButton_file_2->Size = System::Drawing::Size(69, 16);
 			this->radioButton_file_2->TabIndex = 1;
-			this->radioButton_file_2->Text = L"test_video.mjpeg.avi";
+			this->radioButton_file_2->TabStop = true;
+			this->radioButton_file_2->Text = L"mjpeg.avi";
 			this->radioButton_file_2->UseVisualStyleBackColor = true;
 			// 
 			// radioButton_file_1
 			// 
 			this->radioButton_file_1->AutoSize = true;
-			this->radioButton_file_1->Checked = true;
 			this->radioButton_file_1->Location = System::Drawing::Point(7, 16);
 			this->radioButton_file_1->Name = L"radioButton_file_1";
-			this->radioButton_file_1->Size = System::Drawing::Size(121, 16);
+			this->radioButton_file_1->Size = System::Drawing::Size(71, 16);
 			this->radioButton_file_1->TabIndex = 0;
-			this->radioButton_file_1->TabStop = true;
-			this->radioButton_file_1->Text = L"test_video.h264.mp4";
+			this->radioButton_file_1->Text = L"h264.mp4";
 			this->radioButton_file_1->UseVisualStyleBackColor = true;
 			// 
 			// button_play
@@ -151,7 +151,7 @@ namespace Win32Form {
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::Color::Black;
-			this->ClientSize = System::Drawing::Size(380, 310);
+			this->ClientSize = System::Drawing::Size(242, 307);
 			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->pictureBox1);
 			this->Name = L"MyForm";
@@ -200,7 +200,7 @@ namespace Win32Form {
 			bufSize = av_image_get_buffer_size(AV_PIX_FMT_RGB24, width, height, 1 );
 			buf = (uint8_t*)av_malloc(bufSize);
 			frameNew = av_frame_alloc();
-			GetRGBPixels(frameOld, frameNew, buf);
+			GetRGBPixels(frameOld, frameNew, buf, decoderParam);
 
 			//// Lock the bitmap's bits.
 			System::Drawing::Rectangle rect = System::Drawing::Rectangle(0, 0, vo_bmp1->Width, vo_bmp1->Height);
@@ -223,6 +223,14 @@ namespace Win32Form {
 					pb = frameNew->data[0][loc + 2];
 
 					loc = (i + j * width) * 4 + off;
+
+
+					if (pr == 0xff && pb == 0xff && pb == 0xff) {
+						pr = 0xff;
+						pg = 0x00;
+						pb = 0xff;
+					}
+
 					destination[loc + 0] = pb;
 					destination[loc + 1] = pg;
 					destination[loc + 2] = pr;
@@ -255,29 +263,6 @@ namespace Win32Form {
 				encode_mode = 1;
 				InitDecoder("..\\test_video.mjpeg.avi", decoderParam);
 			}
-			auto& width = decoderParam.width;
-			auto& height = decoderParam.height;
-			auto& fmtCtx = decoderParam.fmtCtx;
-			auto& codec_id = decoderParam.vcodecCtx->codec_id;
-
-			printf("avcodec_version:   %d\n", avcodec_version());
-			printf("avformat_version:  %d\n", avformat_version());
-			printf("avutil_version:    %d\n", avcodec_version());
-			switch (codec_id)
-			{
-			case 7:
-				printf("codec: motion-jpeg\n");
-				break;
-			case 27:
-				printf("codec: h.264\n");
-				break;
-			default:
-				printf("codec: not support\n");
-				return;
-			}
-			printf("Width:  %d\n", width);
-			printf("Height: %d\n", height);
-			printf("\n");
 
 			this->timer1->Enabled = true;
 		}
