@@ -80,7 +80,7 @@ namespace Win32Form {
 			// 
 			// pictureBox1
 			// 
-			this->pictureBox1->BackColor = System::Drawing::Color::Magenta;
+			this->pictureBox1->BackColor = System::Drawing::Color::Black;
 			this->pictureBox1->Location = System::Drawing::Point(0, 70);
 			this->pictureBox1->Name = L"pictureBox1";
 			this->pictureBox1->Size = System::Drawing::Size(240, 240);
@@ -95,7 +95,7 @@ namespace Win32Form {
 			this->panel1->Dock = System::Windows::Forms::DockStyle::Top;
 			this->panel1->Location = System::Drawing::Point(0, 0);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(240, 70);
+			this->panel1->Size = System::Drawing::Size(242, 70);
 			this->panel1->TabIndex = 1;
 			// 
 			// groupBox_video_file
@@ -151,7 +151,7 @@ namespace Win32Form {
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::Color::Black;
-			this->ClientSize = System::Drawing::Size(240, 307);
+			this->ClientSize = System::Drawing::Size(242, 307);
 			this->Controls->Add(this->panel1);
 			this->Controls->Add(this->pictureBox1);
 			this->Name = L"MyForm";
