@@ -81,6 +81,9 @@ void InitDecoder(const char* filePath, DecoderParam& param) {
 	case 12:
 		printf("codec: mpeg4\n");
 		break;
+	case 24:
+		printf("codec: adobe encoder\n");
+		break;
 	case 27:
 		printf("codec: h.264\n");
 		break;
@@ -130,36 +133,14 @@ AVFrame* RequestFrame(DecoderParam& param) {
 void GetRGBPixels(AVFrame* src_frame, AVFrame* dst_frame, uint8_t* buf, DecoderParam& param) {
 	SwsContext* swsctx = nullptr;
 
-	auto& codec_id = param.vcodecCtx->codec_id;
-	switch (codec_id)
-	{
-	case 7:
-		//printf("codec: motion-jpeg\n");
-		swsctx = sws_getCachedContext(
-			swsctx,
-			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUVJ420P,
-			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
-		);
-		break;
-	case 12:
-		//printf("codec: mpeg4\n");
-		break;
-	case 27:
-		swsctx = sws_getCachedContext(
-			swsctx,
-			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_YUV420P,
-			src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGB24, NULL, NULL, NULL, NULL
-		);
-		//printf("codec: h.264\n");
-		break;
-	default:
-		//printf("codec: null\n");
-		return;
-	}
-
+	swsctx = sws_getCachedContext(
+		swsctx,
+		src_frame->width, src_frame->height, AVPixelFormat(src_frame->format),
+		src_frame->width, src_frame->height, AVPixelFormat::AV_PIX_FMT_RGBA, NULL, NULL, NULL, NULL
+	);
 	av_image_fill_arrays(
 		dst_frame->data, dst_frame->linesize, buf,
-		AV_PIX_FMT_RGB24, src_frame->width, src_frame->height,
+		AV_PIX_FMT_RGBA, src_frame->width, src_frame->height,
 		1
 	);
 
